@@ -1,0 +1,4 @@
+build_platforms:
+  - 10_14_x86_64
+workers:
+  ports_10_14_x86_64: 'pwd'

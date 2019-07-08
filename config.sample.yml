@@ -1,0 +1,57 @@
+production: False
+
+baseurl: 'https://github.com/macports/macports-base.git'
+mpbburl: 'https://github.com/macports/mpbb.git'
+portsurl: 'https://github.com/macports/macports-ports.git'
+wwwurl: 'https://github.com/macports/macports-www.git'
+guideurl: 'https://github.com/macports/macports-guide.git'
+infraurl: 'https://github.com/macports/macports-infrastructure.git'
+
+workerprefix: /opt/local
+toolsprefix: /opt/macports-test
+jobstoolsprefix: /opt/local
+
+title: 'MacPorts'
+titleURL: 'https://www.macports.org'
+buildbotURL: 'http://localhost:8010/'
+
+workerport: 9989
+httpport: 8010
+
+db_url: 'sqlite:///state.sqlite'
+
+archivesite: 'http://packages.macports.org'
+archivesiteprivate: 'https://packages-private.macports.org'
+privkey: /var/keys/macports-privkey.pem
+deploy: {}
+# deploy:
+#   maxcdn: { secrets: /var/keys/maxcdn-secrets.json }
+#   www:
+#     {
+#       host: '',
+#       user: '',
+#       sshkeyfile: '',
+#       sshknownhostsfile: ssh_known_hosts,
+#       destpath: '',
+#       maxcdnzoneid: 0,
+#     }
+#   portindex:
+#     { host: '', user: '', sshkeyfile: '', sshknownhostsfile: ssh_known_hosts }
+#   guide:
+#     {
+#       host: '',
+#       user: '',
+#       sshkeyfile: '',
+#       sshknownhostsfile: ssh_known_hosts,
+#       destpath: '',
+#       maxcdnzoneid: 0,
+#     }
+#   man:
+#     {
+#       host: '',
+#       user: '',
+#       sshkeyfile: '',
+#       sshknownhostsfile: ssh_known_hosts,
+#       destpath: '',
+#     }
+#   mirror: { distfilesdir: '' }
