@@ -11,6 +11,8 @@ workerprefix: /opt/local
 toolsprefix: /opt/macports-test
 jobstoolsprefix: /opt/local
 
+statusPushUrl: 'http://ec2-52-34-234-111.us-west-2.compute.amazonaws.com'
+
 title: 'MacPorts'
 titleURL: 'https://www.macports.org'
 buildbotURL: 'http://localhost:8010/'
