@@ -1,4 +1,6 @@
 build_platforms:
+  - 10_13_x86_64
   - 10_14_x86_64
 workers:
+  ports_10_13_x86_64: 'pwd'
   ports_10_14_x86_64: 'pwd'
