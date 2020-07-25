@@ -1,0 +1,221 @@
+#!/bin/zsh
+
+set -euo pipefail
+
+srnd() {
+    local rndseed=${1-}
+    if [[ -n $rndseed ]]; then
+        RANDOM=$rndseed
+    fi
+}
+
+rndint() {
+    local outvar=$1
+    local range=${2-32768}
+    local min=${3-0}
+    declare -g $outvar=$((min + RANDOM % range))
+}
+
+rndfloat() {
+    local outvar=$1
+    local range=${2-1.0}
+    local min=${3-0}
+    rndint someint
+    declare -g $outvar=$(echo "scale=8; $min + $range * $someint / 32768" | bc)
+}
+
+rndchr() {
+    local outvar=$1
+    local firstchr=${2-97}
+    local range=${3-26}
+    rndint someasciicode $range $firstchr
+    declare -g $outvar=$(printf "\x$(printf %x $someasciicode)")
+}
+
+rndstr() {
+    local outvar=$1
+    local firstchr=${2-97}
+    local range=${3-26}
+    local str=
+    rndint strlen 12 4
+    while ((strlen > 0)); do
+        rndchr somechr
+        str+=$somechr
+        strlen=$((strlen - 1))
+    done
+    declare -g $outvar=$str
+}
+
+rndyesno() {
+    local outvar=$1
+    rndint oneorzero 2
+    if (($oneorzero == 1)); then
+        declare -g $outvar=yes
+    else
+        declare -g $outvar=no
+    fi
+}
+
+rndsleep() {
+    rndfloat duration 0.4 0.1
+    sleep $duration
+}
+
+rnderr() {
+    rndint success 128
+    if ((success == 0)); then
+        printf "ERROR\n" 2>&1
+        exit 1
+    fi
+}
+
+uiprintf() {
+    fmtstr=$1
+    shift
+    printf "%s $fmtstr\n" "---> " $@
+    rndsleep
+}
+
+mpbbprintf() {
+    fmtstr=$1
+    shift
+    printf "%s $fmtstr\n" "---->" $@
+    rndsleep
+}
+
+while (($# > 0)); do
+    case $1 in
+
+    cleanup)
+
+        mpbbprintf "Deactivating ports"
+        rndint n 15 0
+        while ((n > 0)); do
+            rndstr name
+            uiprintf "Deactivating %s" $name
+            uiprintf "Cleaning %s" $name
+            n=$((n - 1))
+        done
+        exit;;
+
+    list-subports)
+
+        shift
+        while [[ ${1:0:2} == "--" ]]; do
+            shift 2
+        done
+        local name=$1
+        port info --line --index --name {,subportof:}$name
+        exit;;
+
+    install-dependencies)
+
+        shift
+        local name=$1
+        local crc=$(printf $name | crc32 /dev/stdin)
+        srnd $((0x$crc & 0x7fff))
+
+        rndint n 15 0
+        ndeps=$n
+        depnames=()
+        printf "Installing %d dependencies of %s:\n" $ndeps $name
+        while ((n > 0)); do
+            rndstr depname
+            depnames+=$depname
+            printf " - %s \"\" \"\"\n" $depname
+            n=$((n - 1))
+        done
+        n=1
+        for depname in $depnames; do
+            mpbbprintf "Installing dependency (%d of %d) '%s' with variants '' (requesting '')" $n $ndeps $depname
+            printf "Already installed, nothing to do\n"
+            n=$((n + 1))
+        done
+        exit;;
+
+    install-port)
+
+        shift
+        local name=$1
+        local crc=$(printf $name | crc32 /dev/stdin)
+        srnd $((0x$crc & 0x7fff))
+
+        uiprintf "Fetching distfiles for %s" $name
+
+        uiprintf "Computing dependencies for %s" $name
+
+        uiprintf "Fetching archive for %s" $name
+
+        uiprintf "Checksumming %s" $name
+        rnderr
+
+        uiprintf "Extracting %s" $name
+
+        uiprintf "Patching %s" $name
+        rnderr
+
+        uiprintf "Configuring %s" $name
+        rndint n 20 5
+        while ((n > 0)); do
+            rndstr condition
+            rndyesno yesno
+            printf "checking for %s... %s\n" $condition $yesno
+            n=$((n - 1))
+            rndsleep
+            rnderr
+        done
+
+        uiprintf "Building %s" $name
+        rndint n 20 5
+        while ((n > 0)); do
+            rndstr objname
+            printf "  CC       %s.o\n" $objname
+            n=$((n - 1))
+            rndsleep
+            rnderr
+        done
+        rndstr progname
+        printf "  CCLD     %s\n" $progname
+
+        uiprintf "Staging %s into destroot" $name
+        rndint n 10 5
+        while ((n > 0)); do
+            rndstr filename
+            printf "installing %s\n" $filename
+            n=$((n - 1))
+            rndsleep
+        done
+
+        uiprintf "Installing %s" $name
+
+        uiprintf "Activating %s" $name
+
+        exit;;
+
+    gather-archives)
+        rndint n 15 0
+        while ((n > 0)); do
+            rndint distributable 2
+            if ((distributable == 1)); then
+                local diststatus="distributable"
+                local servertype="public"
+            else
+                local diststatus="not distributable"
+                local servertype="private"
+            fi
+            rndstr depname
+            local archivename=$depname.$(uname -s | tr 'A-Z' 'a-z')_$(uname -r | cut -d. -f1).$(uname -m).tbz2
+            printf "\"%s\" is %s\n" $depname $diststatus
+            printf "Already uploaded %s archive: %s\n" $servertype $archivename
+            n=$((n - 1))
+        done
+        exit;;
+
+    selfupdate|checkout)
+
+        echo $1
+        exit;;
+
+    esac
+    shift
+done
